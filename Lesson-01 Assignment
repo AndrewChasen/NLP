@@ -1,2 +1,26 @@
 Lesson-01 Assignment
-1. 复现课堂代码
+1. 复现课堂代码部分：
+
+simple_grammar = """
+sentence => noun_phrase verb_phrase
+noun_phrase => Article Adj* noun
+Adj* => null | Adj Adj*
+verb_phrase => verb noun_phrase
+Article =>  一个 | 这个
+noun =>   女人 |  篮球 | 桌子 | 小猫
+verb => 看着   |  坐在 |  听着 | 看见
+Adj =>  蓝色的 | 好看的 | 小小的
+"""
+
+# 以上部分是采用语言学家使用的语法规则，通过手动的方式编译出来的一套语法。按照词性进行划分的。
+# 第一步：在单一的词性中，随机选择一个词
+import random
+def adj():
+    return random.choice("看着   |  坐在 |  听着 | 看见".split('|')).split()[0]
+>>>看着
+>>>坐在
+>>>看见
+...
+
+# 目的是： 根据这些规则，采用在不同词性部分，随机抽取词语，进行组配。
+
