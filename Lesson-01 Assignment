@@ -1,6 +1,61 @@
 Lesson-01 Assignment
 1. 复现课堂代码部分：
 
+adj_grammar = """
+Adj* => null | Adj Adj*
+Adj =>  蓝色的 | 好看的 | 小小的
+""" 蓝色的 | 好看的 | 小小的
+"""
+
+# 以上部分是采用语言学家使用的语法规则，通过手动的方式编译出来的一套语法。按照词性进行划分的。
+# 第一步：在单一的词性中，随机选择一个词 adj (只能选择一个词，终结词）
+import random
+def adj():
+    return random.choice("蓝色的 | 好看的 | 小小的".split('|')).split()[0]
+ 
+adj()
+>>>蓝色的
+>>>好看的
+>>>小小的
+...
+
+# 第二步：在单一的词性中，随机选择一个词 adj*，该词，可以递归选择（也就是说他是由n个形容词构成，自己调用自己（这样的词语叫做非终结词语，一般在等号的左边）
+def adj_star():
+    return random.choice([lambda:'', lambda: adj() + adj_star()])()
+    
+adj_star()
+>>>蓝色的蓝色的
+>>>好看的蓝色的
+>>>小小的蓝色的好看的
+>>>小小的小小的小小的
+>>>小小的
+...   
+
+
+综上，一般地：
+adj_grammar = """
+Adj* => null | Adj Adj*
+Adj =>  蓝色的 | 好看的 | 小小的
+"""
+
+# 可以将以上部分转化成字典的数据结构，即：字典的键为词性， 字典的值为具体的值===不可以再次扩展（其中还可能存在该词词性的表征===可以再次扩展）
+grammar = {}
+for line in adj_grammar.split('\n'):
+    if not line.strip():
+        countinue;
+    a,b = line.split('=>')
+    grammar[a.strip()] = [s for s.split() in b.split('|')]   
+
+grammar
+>>>{'Adj*': [['null'], ['Adj', 'Adj*']], 'Adj': [['蓝色的'], ['好看的'], ['小小的']]}
+grammar[Adj]
+>>> [['蓝色的'], ['好看的'], ['小小的']]
+grammar[Adj*]
+>>>[['null'], ['Adj', 'Adj*']]
+
+
+#推广来说：对于：给定的一段具有表示含义的字符串，输入的是该字符串，输出的是需要具备含有字典数据结构的语法结构，方便后面使用
+类似于：
 simple_grammar = """
 sentence => noun_phrase verb_phrase
 noun_phrase => Article Adj* noun
@@ -12,15 +67,75 @@ verb => 看着   |  坐在 |  听着 | 看见
 Adj =>  蓝色的 | 好看的 | 小小的
 """
 
-# 以上部分是采用语言学家使用的语法规则，通过手动的方式编译出来的一套语法。按照词性进行划分的。
-# 第一步：在单一的词性中，随机选择一个词
-import random
-def adj():
-    return random.choice("看着   |  坐在 |  听着 | 看见".split('|')).split()[0]
->>>看着
->>>坐在
->>>看见
-...
+使用：
+def grammar(grammar_str)
+    grammar = {}
+    for line in adj_grammar.split('\n'):
+        if not line.strip():
+            countinue;
+        a,b = line.split('=>')
+        grammar[a.strip()] = [s for s.split() in b.split('|')]
+    return grammar
+    
+example_grammar = grammar(simple_grammar)
+example_grammar
+>>>{'sentence': [['noun_phrase', 'verb_phrase']],
+ 'noun_phrase': [['Article', 'Adj*', 'noun']],
+ 'Adj*': [['null'], ['Adj', 'Adj*']],
+ 'verb_phrase': [['verb', 'noun_phrase']],
+ 'Article': [['一个'], ['这个']],
+ 'noun': [['女人'], ['篮球'], ['桌子'], ['小猫']],
+ 'verb': [['看着'], ['坐在'], ['听着'], ['看见']],
+ 'Adj': [['蓝色的'], ['好看的'], ['小小的']]}
 
-# 目的是： 根据这些规则，采用在不同词性部分，随机抽取词语，进行组配。
+
+综上：根据字符串===》》》产生了具有字典形式的数据结构，
+#问题在于：如果将不同词性的组装起来，并且建立一套规则，理想情况下，输入一个该字典形式的数据结构grammar， 输出的就是他随机产生的一个句子，如何做？
+
+{'sentence': [['noun_phrase', 'verb_phrase']],
+ 'noun_phrase': [['Article', 'Adj*', 'noun']],
+ 'Adj*': [['null'], ['Adj', 'Adj*']],
+ 'verb_phrase': [['verb', 'noun_phrase']],
+ 'Article': [['一个'], ['这个']],
+ 'noun': [['女人'], ['篮球'], ['桌子'], ['小猫']],
+ 'verb': [['看着'], ['坐在'], ['听着'], ['看见']],
+ 'Adj': [['蓝色的'], ['好看的'], ['小小的']]}
+ 
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
