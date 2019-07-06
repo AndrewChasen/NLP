@@ -212,7 +212,41 @@ if sen in generate(gram=example_grammar,'sentence')
 总结： 1. 自动机： 根据语法结构，终结符跟非终结符来循环递归生成一句话，多应用再机器语言的编译中。
 2. 2_Gram 模型： 根据语料库的统计学中某个单词，某2个单词结合再一起的概率，统计出一句话是否符合概率的逻辑。越大表示话就是人话。
 ########################################################################################################################################
+2. 基础理论部分
+0. Can you come up out 3 sceneraies which use AI methods?
+Ans: 机器翻译, 人形机器人, 智能客服系统，搜索推荐，自动驾驶，身份证识别等
 
+1. How do we use Github; Why do we use Jupyter and Pycharm;
+Ans: 1. github 用来存储代码，2. 对于开源的代码，可以进行下载学习甚至复用。 
+使用Jupyter是用来演示，一些基础的数学公式方便展示。
+使用pycharm是用做大型的项目开发用。
+
+2. What's the Probability Model?
+Ans:概率模型是在 统计学的基础上计算出某个事件的出现的可能性，用0到1的开区间来表示，越接近1的表示这件事情发生的概率越可能。
+
+3. Can you came up with some sceneraies at which we could use Probability Model?
+Ans: 撰写英语语言的自动提示，google搜索的自动补全，以及推荐搜索，智能客服等
+
+4. Why do we use probability and what's the difficult points for programming based on parsing and pattern match?¶
+Ans: 之所以运用概率模型，是因为，普通的自动机产生的语法不足以能表示人类的语言，产生的语句，需要可靠的语法树来维护，往往产生的语言，很不符合实际人类表述方式。
+通过概率模型，可以比较轻松的将通过统计学的方法，将单词跟单词之间出现的概率计算出来，更符合逻辑表示。
+而语法分析跟模式匹配，是随机的从规定好的语法中寻找单词进行匹配，往往有语法结构正确，但不符合人的逻辑表示。
+
+5. What's the Language Model;
+Ans:语言模型，就是通过统计学的方法将大量预料中，借助贝叶斯的公式，将一个单词出现的概率跟他临近的单词出现的概率想关联。提高了语言表述的准确性。
+
+6. Can you came up with some sceneraies at which we could use Language Model?
+Ans:google搜索中的自动补全，陪伴式机器人，智能客服
+
+7. What's the 1-gram language model;
+Ans:一个单词出现的概率跟他本身相关的语言模型，也就是单个字符或者单词出现的概率。
+
+8. What's the disadvantages and advantages of 1-gram language model;
+Ans: 1个单词粗线的概率跟他本身相关，不与是否有其他单词出现相关，优势在于很容易计算，用于统计词频。
+劣势，应用比较窄，用做构成句子的话，可能完全不符合人类逻辑，
+
+9. What't the 2-gram models;
+Ans: 一个句子中，通过分词后，该单词出现的概率跟他临近一个单词出现的概率紧密相关。p（a|b)=p(ab)/p(b)
 
 
 
