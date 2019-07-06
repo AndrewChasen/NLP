@@ -1,4 +1,6 @@
 Lesson-01 Assignment
+
+########################################################################################################################################
 1. 复现课堂代码部分：
 
 adj_grammar = """
@@ -54,7 +56,7 @@ grammar[Adj*]
 >>>[['null'], ['Adj', 'Adj*']]
 
 
-#推广来说：对于：给定的一段具有表示含义的字符串，输入的是该字符串，输出的是需要具备含有字典数据结构的语法结构，方便后面使用
+#推广来说：对于：给定的一段具有表示含义的字符串，输入的是该字符串，输出的是需要具备含有字典数据结构的语法结构，方便后面使用。
 类似于：
 simple_grammar = """
 sentence => noun_phrase verb_phrase
@@ -89,9 +91,18 @@ example_grammar
  'Adj': [['蓝色的'], ['好看的'], ['小小的']]}
 
 
-综上：根据字符串===》》》产生了具有字典形式的数据结构，
-#问题在于：如果将不同词性的组装起来，并且建立一套规则，理想情况下，输入一个该字典形式的数据结构grammar， 输出的就是他随机产生的一个句子，如何做？
+#综上：根据字符串===》》》产生了具有字典形式的数据结构===》》》如果是不可扩展的，直接返回，如果是可以扩展的直接再次进入扩展。最终可以生成一个句子。
+#逻辑过程：如果是再左边的，那么直接随机选择，如果选择出来右边的是终结符，直接返回，如果选择出来的是非终结符，可以扩展的，那么再次调用每一个扩展，依次类推，直到能选择出终结符为止。
+import random
+def generate(gram, target):
+    if target not in gram:
+        return target
+    expanded = [generate(gram,t) for t in ramdon.choice(gram[target])]
+    return ''.join(e for e in expanded)
 
+
+#综合上述过程：给定了语法规则，给定了一段语句，理想情况下，也就是输入一个该字典形式的数据结构grammar跟一段随机的符合语法结构的句子，输出的就是他随机产生的一个句子，如何做？
+例如：
 {'sentence': [['noun_phrase', 'verb_phrase']],
  'noun_phrase': [['Article', 'Adj*', 'noun']],
  'Adj*': [['null'], ['Adj', 'Adj*']],
@@ -100,6 +111,134 @@ example_grammar
  'noun': [['女人'], ['篮球'], ['桌子'], ['小猫']],
  'verb': [['看着'], ['坐在'], ['听着'], ['看见']],
  'Adj': [['蓝色的'], ['好看的'], ['小小的']]}
+ 
+ import random
+ def generate(gram,target):
+     if target not in gram:
+         return target
+     expanded = [generate(gram,t) for t in random.choice(gram[target])
+     return ''.join([e for e in expanded if e !='null'])
+  generate(gram=example_grammar,'sentence')
+  
+  >>> '一个好看的小猫看着这个女人'
+  
+  
+  
+ ##以上部分就是rule based的paradigm范例实际上就是自动机，意思是说，要给定一个语言规则，以及一个根据语法规则设计好的一个语句，通过判断，是否为终结符进行递归的判断，
+ ##最终生成一句话。目前应用比较广的是再机器语言的编译上面。
+ 
+ 问题来了： 这样的一句话，是否真的有意义，以及逻辑是否正确呢，因为他是随机选择的，再匹配的过程中一定有一些句子，是逻辑混乱的。所以针对这个问题，如何来解决呢？
+ @solution： 可不可以，给定一些语料库（越大越好），这些语料库中，抽出任意一个句子，来分析，发现，某个字符，要出现的原因是，跟他后面的字符出现是连再一起的，
+ 意思就是说他的出现，跟后面的字符出现存在某个规律，如果能找到一个方法，将他出不出现的概率给统计出来，以及他再整个语料库中出现的次数，从而随机生成出来的句子，就更符合
+ 随机规则。
+ 
+ 另外一个问题，某个字符，出现的概率，实际上再一个句子中出现的概率跟他再句子的位置由关系，如果一个字符出现再句首，那么这个句子由10，100，1000个字符，他跟句尾
+ 的出现几率联合在一起的概率就没有那么重要，同样的，跟倒数第二个字符也是一样，以此类推，我们只计算跟他紧接着的下一个的字符联合再一起出现的概率。
+ 
+ 要判断这个字符出不出现，只需要判断这个字符构成的词组出不出现以及他的概率。
+ 
+ $$ language\_model(String) = Probability(String) \in (0, 1) $$
+$$ Pro(w_1 w_2 w_3 w_4) = Pr(w_1 | w_2 w_3 w_ 4) * P(w2 | w_3 w_4) * Pr(w_3 | w_4) * Pr(w_4)$$
+$$ Pro(w_1 w_2 w_3 w_4) \sim Pr(w_1 | w_2 ) * P(w2 | w_3 ) * Pr(w_3 | w_4) * Pr(w_4)$$
+
+#语言模型 2_gram 模型
+输入，是一个句子
+输出，0，1直接的值，越近1，就句子越真实反之，就越不真实。
+
+
+具体的做法：
+第一步： 再语料库中分析全部字符，组成的一个单词出现的概率。
+step1, 导入语料库
+step2，将语料库进行清理，（主要去除掉invild字符,比如换行符，逗号，分号等）
+step3，分词
+step4, 计算每个分词出现的概率:每个单词，再总的单词中出现的概率大小
+import pandas as pd
+import re
+import jieba
+from collections import Counter
+
+filename = '/Users/gaominquan/Downloads/sqlResult_1558435.csv'
+content = pd.read_csv(filename,encoding='gb18030')
+articles = content['content'].tolist
+
+def token(string):
+    return findall('\w+',string)
+
+articles_clean = ''join(token(str(a)for a in articles))
+    
+def cut(string):
+    return list(jieba.cut(string))
+
+TOKEN= []
+for i,line in enumerate(articles_clean):
+    return TOKEN +=cut(line)
+
+word_count = Counter(TOKEN)
+
+def Prob_1(word):
+    return word_count[word] / len(TOKEN)
+
+第二步：
+要求出一个单词跟另外一个单词的联合概率: 两个相邻单词合起来/再组合中的数量
+TOKEN = [str(t) for t in TOKEN]
+
+TOKEN_2_GRAM = ''.join(TOKEN[i:i+2] for i in range(len(TOKEN[:-2]))
+word_count_2 = Counter(TOKEN_2_GRAM)
+
+def prob_2(word1,word2):
+    if word1 + word2 in word_count_2:
+        return word_count_2[word1 + word2] / len(TOKEN_2_GRAM)
+    else Prob_1(word1) + Prob_2(word2) / 2
+    
+第三步： 对于一句话的概率来说，可以先进行分词，然后就是相邻的两个单词的概率相乘起来。
+
+def Prob_sentence(sentence):
+    words = cut(sentence)
+    
+    for i, word in enumerate(words[:-1]):
+        next_ = words[i+1]
+        probability = prob_2(word,next_)
+        sentence_prob *= probability
+    return sentence_prob
+
+
+综上。
+要判断根据自动机产生的语句，他的出现这计划的概率，那么可以结合2_gram语言模型，进行判断：而不是根据语法进行判断的。
+if sen in generate(gram=example_grammar,'sentence')
+>>> '一个好看的小猫看着这个女人'
+
+他的出现的概率就是，Prob_sentence(sen)
+
+总结： 1. 自动机： 根据语法结构，终结符跟非终结符来循环递归生成一句话，多应用再机器语言的编译中。
+2. 2_Gram 模型： 根据语料库的统计学中某个单词，某2个单词结合再一起的概率，统计出一句话是否符合概率的逻辑。越大表示话就是人话。
+########################################################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
  
  
  
