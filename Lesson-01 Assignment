@@ -327,20 +327,24 @@ TODO: 然后，定义一个函数，generate_n，将generate扩展，使其能�
 
 
 def generate_n(n):
+    dia = []
     for i in range(n):
-        print(generate(grammar=example_grammar,target='Guest'))
-        print(generate(grammar=example_grammar_waiter,target='Waiter'))
+        G = generate(grammar=example_grammar,target='Guest')
+        W = generate(grammar=example_grammar_waiter,target='Waiter')
+        dia.append(G)
+        dia.append(W)
+    return dia
         
 generate_n(4)
 >>>
-我们找找吃的项目
-你好我是652号服务员,请问您们要吃一点素菜吗？
-我想找点吃的项目
-先生们,您们好我是36号服务员,请问您们要上一点特色菜吗？
-我们想找点吃的项目
-女士们,你好我是83号服务员,您们需要搞一点荤菜吗？
-俺想找点吃的项目
-大家,你好我是99号服务员,请问您们要搞一点酒不啊？
+['俺想找点喝的项目',
+ '你好我是6397号服务员,请问大家要喝一点蔬菜不啊？',
+ '我找找吃的项目',
+ '大家,你好我是394号服务员,您需要吃一点肉吗？',
+ '我们找找吃的项目',
+ '大家,你好我是53号服务员,您需要尝一点荤菜不啊？',
+ '俺找找喝的项目',
+ '小朋友,您好我是7号服务员,请问您们要点一点素菜吗？']
 
 
 2. 使用新数据源完成语言模型的训练
@@ -352,16 +356,97 @@ generate_n(4)
 
 2-2 修改代码，获得新的2-gram语言模型：
     2-2-1 进行文本清洗，获得所有的纯文本
+    filename='E:/movie_comments.csv'
+    import pandas as pd
+    content = pd.read_csv(filename,encoding='utf-8')
+    comment_list = content['comment'].tolist()
+    import re
+    def clean(string):
+        return re.findall('\w+',string)
+    comment_clean = [''.join(clean(str(s)))for s in comment_list]
     
+      
     2-2-2 将这些文本进行切词
+    
+    import jieba
+    def cut_word(string):
+        return list(jieba.cut(string))
+    S = []
+    
+    for i, line in enumerate(comment_clean):
+    S+=cut_word(line)
+    
+    from collections import Counter
+    word_count = Counter(S)
+    
+    S_2 = [''.join(S[i:i+2])for i in range(len(S[:-2]))]
+    words_count = Counter(S_2)
+    def Pro_2(word1,word2):
+        if word1+word2 in words_count: return words_count[word1+word2] / len(S_2)
+        else: return 1/len(S_2)
+    
+    def Pro_sentence(sentence):
+        probaility_sentence = 1
+        words = cut_word(sentence)
+        for i, word in enumerate(words[:-1]):
+            next_ = words[i+1] 
+            probability = Pro_2(word,next_)
+            probaility_sentence *=probability
+        return probaility_sentence
+    
     2-2-3  送入之前定义的语言模型中，判断文本的合理程度
-        
-
+    def get_pro(n):
+        for sen in generate_n(n):
+            print('sentence:{}with Prb:{}'.format(sen,Pro_sentence(sen)))
+            
+    get_pro(4)
+    >>>
+sentence:我们找找喝的项目with Prb:8.282657142027961e-31
+sentence:大家,您们好我是9号服务员,请问您们要尝一点本地菜不啊？with Prb:2.5418648220248476e-115
+sentence:我们找找吃的项目with Prb:6.350037142221436e-30
+sentence:女士们,您们好我是1189号服务员,请问你要点一点蔬菜不啊？with Prb:1.0250269622718494e-103
+sentence:俺想找点喝的项目with Prb:5.916183672877114e-32
+sentence:您们好我是9号服务员,请问你要搞一点酒不啊？with Prb:1.8226651782184055e-91
+sentence:我找找喝的项目with Prb:2.0706642855069903e-29
+sentence:小朋友,您们好我是8号服务员,您需要吃一点菜不？with Prb:9.665648672370333e-95
     
 
+3. 获得最优质的的语言
+当我们能够生成随机的语言并且能判断之后，我们就可以生成更加合理的语言了。请定义 generate_best 函数，该函数输入一个语法 + 语言模型，能够生成n个句子，并能选择一个最合理的句子:
+
+提示，要实现这个函数，你需要Python的sorted函数
+
+首先确定输入：语法， 语言模型
+其次确定输出：nge句子，输出最高可能的
+def generate_best(n): # you code here
+    b_waiter = []
+    b_guest = []
+    for i,line in enumerate(get_pro(n)):
+        s = line.split(':')
+        if i%2 == 0:
+            c =(s[-1],s[-2].replace(' with Prb',''))
+            b_guest.append(c)
+        else:
+            c =(s[-1],s[-2].replace(' with Prb',''))
+            b_waiter.append(c)
+    final_guest = sorted(b_guest,key=lambda x:x[0],reverse=True)
+    final_waiter = sorted(b_waiter,key=lambda x:x[0],reverse=True)
+    return 'Guest:{} + \n +Guest:{}'.format(final_guest[0][-1],final_waiter[1][-1])
+    
+  generate_best(6)
+  >>>'Guest:俺找找吃的项目 + \n +Guest:你好我是48号服务员,请问你们要上一点本地菜不？'
 
 
+Q: 这个模型有什么问题？ 你准备如何提升？
 
+Ans: 1. 语法结构上还需要扩展
+2. 函数的命名空间需要扩展
+3. 句子中问答实际上是分开的，问的问题随机选择，回答的问题也是随机选择的。问的问题跟回答的问题实际上是没有相关性的。造成的最终结果是答非所问。
+4. 只能定义一些简单的问答问题，对于一些具有逻辑性的问题，没法回复的。比如判定两个问题的相似性，找到同一个回复，只能用问题对应答案的方式，不能判定问题的相似性，来回复。
+
+鉴于此，可以提升的工作为：
+1. 将问提跟回答划分成不同模块，根据用户提问的可能，将对应的提问跟回答给模块提取出来，这样可能更为人性化。（可以通过用户询问最多的话来存储）
+2. 尽可能多的收集问题跟答案
 
 
 
