@@ -1,0 +1,16 @@
+Assignments for Week-02
+####################################################################################################################################
+1. Re-code the house price machine learning
+
+1. Random Choose Method to get optimal k and b
+
+2.Supervised Direction to get optimal k and b
+
+3.Gradient Descent to get optimal k and b
+
+4. Try different Loss function and learning rate.
+
+For example, you can change the loss function: $Loss = \frac{1}{n} sum({y_i - \hat{y_i}})^2$ to $Loss = \frac{1}{n} sum(|{y_i - \hat{y_i}}|)$
+
+And you can change the learning rate and observe the performance.
+
