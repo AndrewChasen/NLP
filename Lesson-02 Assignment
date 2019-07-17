@@ -5,10 +5,39 @@ Assignments for Week-02
 流程梳理：
 1. 使用sklearn的数据集导入数据
 2. 以提取平均房间数跟价格的关系作为分析的指标RM（average number of rooms per dwelling)
-3. 使用matplotlib生成rm跟房价之间的对应关系
-4. 通过观察，可能跟线性函数比较类似，使用线性函数来拟合。使用随机的k，b值
-5. 设定不同的生成次数，来生成函数的真实值，跟预测值之间的差距
+3. 使用matplotlib生成rm跟房价之间的对应关系。
+4. 通过观察，可能跟线性函数比较类似，使用线性函数来拟合。使用随机的k，b值。
+5. 计算出预测值跟真实值的差距，既是loss值。
+6. 为了让loss变得更小，也就是生成函数的真实值，跟预测值之间的差距越小，说明预测更准确。
+7. 为了让预测值更准确，需要不断的设定次数来尝试，导致的问题随着尝试的次数增加，所需要的时间就相应的增加了。
 6. 如何让在较少的生成次数下，迅速得到比较接近的真实值，而不需要这么长的时间，使用梯度下降方式，首先设定k，b方向，进行监督优化。
+
+
+步骤一： 导入数据
+from sklearn.datasets import load_boston
+data = load_boston()
+x,y - data['data'],data['target']
+
+第二，三步：画图，观察可能可以拟合的函数
+import matplotlib.pyplot as plt
+plt.scatter(x[:.5],y)
+
+第四步：通过观察是一个线性关系
+定义函数表示
+def price(rm,k,b)
+    return k * rm + b
+   
+如果能随机的生成k，b给定一个rm就能计算出他获得的价格，这个价格就是预测值
+生成k， b 确保在一定范围波动
+import random
+k = random.random* 200 - 100
+b = random.random* 200 - 100
+
+对应的预期的价格为：
+price_random_k_and_b = price(rm,k,b)
+
+
+
 
 
 
