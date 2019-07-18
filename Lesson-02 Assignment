@@ -94,26 +94,70 @@ for i in range(trying_times):
         print('when time is :{},get best_k is:{} and best_b is :{},and the loss is :{}'.format(i,best_k,best_b,min_loss))      
     else:
         current_direction =random.choice(direction)
-        
-        
+注意，以上的步骤微调中，是设定了一个定量scalar的值，每次走的量是0.1 可以设定不同值作为参考的。
+  
+ #####################################################################################################################################
+
+
+1. Random Choose Method to get optimal k and b， see codes as followings:
+
+trying_times= 10000
+best_b,best_k = None,None
+min_loss = float('inf')
+for i in range(trying_times):
+    k = random.random()*200 - 100
+    b = random.random()*200 - 100
+    price_ramdom_k_and_b = [price(rm,k,b) for rm in x_rm]
+    current_loss= loss(y,price_ramdom_k_and_b)
+    if current_loss< min_loss:
+        min_loss = current_loss
+        best_k,best_b = k, b
+        print('when time is :{},get best_k is:{} and best_b is :{},and the loss is :{}'.format(i,best_k,best_b,min_loss)) 
+
+2.Supervised Direction to get optimal k and b, see codes as followings:
+
+trying_times= 2000
+min_loss = float('inf')
+
+best_k = random.random()*200 - 100
+best_b = random.random()*200 - 100
+
+direction = [
+    (+1,+1),
+    (+1,-1),
+    (-1,+1),
+    (-1,-1),
+]
+
+current_direction = random.choice(direction)
+scalar = 0.1
+
+for i in range(trying_times):
     
+    k_direction, b_direction = current_direction
+    
+    current_k,current_b = best_k+ scalar*k_direction , best_b + scalar*b_direction
+    
+    price_ramdom_k_and_b = [price(rm,current_k,current_b) for rm in x_rm]
+    
+    current_loss= loss(y,price_ramdom_k_and_b)
+    
+    if current_loss< min_loss:
+        min_loss = current_loss
+        best_k,best_b = current_k, current_b
+        
+        current_direction = current_direction
+        print('when time is :{},get best_k is:{} and best_b is :{},and the loss is :{}'.format(i,best_k,best_b,min_loss))      
+    else:
+        current_direction =random.choice(direction)
+        
+        
+3.Gradient Descent to get optimal k and b, see codes as followings:
+
+分析过程：
 
 
 
-
-
-
-
-
-a
-
-
-
-1. Random Choose Method to get optimal k and b
-
-2.Supervised Direction to get optimal k and b
-
-3.Gradient Descent to get optimal k and b
 
 4. Try different Loss function and learning rate.
 
