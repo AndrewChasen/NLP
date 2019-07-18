@@ -7,10 +7,10 @@ Assignments for Week-02
 2. 以提取平均房间数跟价格的关系作为分析的指标RM（average number of rooms per dwelling)
 3. 使用matplotlib生成rm跟房价之间的对应关系。
 4. 通过观察，可能跟线性函数比较类似，使用线性函数来拟合。使用随机的k，b值。
-5. 计算出预测值跟真实值的差距，既是loss值。
-6. 为了让loss变得更小，也就是生成函数的真实值，跟预测值之间的差距越小，说明预测更准确。
-7. 为了让预测值更准确，需要不断的设定次数来尝试，导致的问题随着尝试的次数增加，所需要的时间就相应的增加了。
-6. 如何让在较少的生成次数下，迅速得到比较接近的真实值，而不需要这么长的时间，使用梯度下降方式，首先设定k，b方向，进行监督优化。
+5. 计算出预测值跟真实值的差距，既是loss值。可以使用差值的平方求和除以个数来获得单个loss的平均值。
+6. 根据定义的公式得到当前的loss值，带入已经获取的真实y，跟计算出来的y_hat
+7. 使用不断的设定尝试次数的方法，将当前最小的loss给计算出来，在最小的时候，获得当前的k, b值
+8. 如何让在较少的生成次数下，迅速得到比较接近的真实值，而不需要这么长的时间，使用梯度下降方式，首先设定k，b方向，进行监督优化。
 
 
 步骤一： 导入数据
@@ -32,9 +32,71 @@ def price(rm,k,b)
 import random
 k = random.random* 200 - 100
 b = random.random* 200 - 100
+x_rm = x[:,5]
+
 
 对应的预期的价格为：
-price_random_k_and_b = price(rm,k,b)
+price_random_k_and_b =[price(rm,k,b) for rm in x_rm]
+
+第五步：算出loss值
+def loss(y, y_hat): 
+    return sum((y_i - y_i_hat)**2 for y_i, y_i_hat in zip(list(y), list(y_hat))) / len(list(y))
+    
+第六步：带入y跟y_hat求得当前的loss值
+current_loss =loss(y,price_random_k_and_b)
+
+第七步： 经过不断的尝试，在一定次数范围内，找出最优化的loss对应下的k，b值，理论上来说，尝试的次数越多，那么越接近
+trying_times= 10000
+best_b,best_k = None,None
+min_loss = float('inf')
+for i in range(trying_times):
+    k = random.random()*200 - 100
+    b = random.random()*200 - 100
+    price_ramdom_k_and_b = [price(rm,k,b) for rm in x_rm]
+    current_loss= loss(y,price_ramdom_k_and_b)
+    if current_loss< min_loss:
+        min_loss = current_loss
+        best_k,best_b = k, b
+        print('when time is :{},get best_k is:{} and best_b is :{},and the loss is :{}'.format(i,best_k,best_b,min_loss)) 
+        
+第八步：采用方向约束，k可以正负，b可以正负,那么组合之后有4种可能，如果当前的这个loss一直在持续下降，那么就继续沿着当前的方向执行，否则，就随机的选择另外的方向进行
+trying_times= 2000
+min_loss = float('inf')
+
+best_k = random.random()*200 - 100
+best_b = random.random()*200 - 100
+
+direction = [
+    (+1,+1),
+    (+1,-1),
+    (-1,+1),
+    (-1,-1),
+]
+
+current_direction = random.choice(direction)
+scalar = 0.1
+
+for i in range(trying_times):
+    
+    k_direction, b_direction = current_direction
+    
+    current_k,current_b = best_k+ scalar*k_direction , best_b + scalar*b_direction
+    
+    price_ramdom_k_and_b = [price(rm,current_k,current_b) for rm in x_rm]
+    
+    current_loss= loss(y,price_ramdom_k_and_b)
+    
+    if current_loss< min_loss:
+        min_loss = current_loss
+        best_k,best_b = current_k, current_b
+        
+        current_direction = current_direction
+        print('when time is :{},get best_k is:{} and best_b is :{},and the loss is :{}'.format(i,best_k,best_b,min_loss))      
+    else:
+        current_direction =random.choice(direction)
+        
+        
+    
 
 
 
